@@ -8,6 +8,32 @@
 
 const STORAGE_KEY = 'selectorRules';
 
+/**
+ * URL 정규화 (content.js 와 동일한 로직)
+ */
+function normalizeUrl(url) {
+  try {
+    const u = new URL(url);
+    let path = u.pathname;
+    if (path.length > 1 && path.endsWith('/')) {
+      path = path.slice(0, -1);
+    }
+    return u.origin + path;
+  } catch (e) {
+    return url.replace(/#.*$/, '').replace(/\/$/, '');
+  }
+}
+
+function urlMatches(pattern, currentUrl) {
+  if (!pattern) return false;
+  if (pattern === '*') return true;
+  const normalizedPattern = normalizeUrl(pattern);
+  const normalizedCurrent = normalizeUrl(currentUrl);
+  const escaped = normalizedPattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+  const regex = new RegExp(`^${escaped}$`);
+  return regex.test(normalizedCurrent);
+}
+
 // 설치 시 초기화
 chrome.runtime.onInstalled.addListener(async () => {
   // 기존 데이터가 없으면 빈 배열로 초기화
@@ -29,13 +55,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (!rules || rules.length === 0) return;
 
   // 현재 URL에 매칭되는 규칙이 있는지 빠르게 확인
-  const hasMatch = rules.some((rule) => {
-    const pattern = rule.urlPattern || '';
-    if (!pattern) return false;
-    const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-    const regex = new RegExp(`^${escaped}$`);
-    return regex.test(tab.url);
-  });
+  const hasMatch = rules.some((rule) => urlMatches(rule.urlPattern, tab.url));
 
   if (!hasMatch) return;
 

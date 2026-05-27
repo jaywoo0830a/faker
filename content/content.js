@@ -11,19 +11,89 @@ const STORAGE_KEY = 'selectorRules';
 const APPLIED_ATTR = 'data-faker-applied';
 const PANEL_ID = '__faker_panel__';
 
+// 로컬 캐시: storage.onChanged 로 동기화되어 항상 최신 상태 유지
+let cachedRules = [];
+
 // ==================== 1. 규칙 적용 ====================
 
-async function getMatchingRules() {
-  const { [STORAGE_KEY]: allRules } = await chrome.storage.local.get(STORAGE_KEY);
-  if (!allRules || !Array.isArray(allRules)) return [];
-  const currentUrl = window.location.href;
-  return allRules.filter((rule) => {
-    const pattern = rule.urlPattern || '';
-    if (!pattern) return false;
-    const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-    const regex = new RegExp(`^${escaped}$`);
-    return regex.test(currentUrl);
+/**
+ * URL을 정규화하여 매칭에 사용합니다.
+ * - trailing slash 제거
+ * - hash 제거
+ */
+function normalizeUrl(url) {
+  try {
+    const u = new URL(url);
+    // pathname의 trailing slash 제거 (단, 루트 '/'는 유지)
+    let path = u.pathname;
+    if (path.length > 1 && path.endsWith('/')) {
+      path = path.slice(0, -1);
+    }
+    return u.origin + path;
+  } catch (e) {
+    // URL 파싱 실패 시 원본에서 hash만 제거
+    return url.replace(/#.*$/, '').replace(/\/$/, '');
+  }
+}
+
+/**
+ * URL 패턴이 현재 URL과 매칭되는지 확인합니다.
+ * - '*' 는 전체 매칭
+ * - 패턴도 정규화 후 비교
+ * - 내부 와일드카드 '*' 지원
+ */
+function urlMatches(pattern, currentUrl) {
+  if (!pattern) return false;
+  if (pattern === '*') return true;
+
+  const normalizedPattern = normalizeUrl(pattern);
+  const normalizedCurrent = normalizeUrl(currentUrl);
+
+  // 와일드카드를 정규식으로 변환
+  const escaped = normalizedPattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+  const regex = new RegExp(`^${escaped}$`);
+  return regex.test(normalizedCurrent);
+}
+
+/**
+ * storage에서 규칙을 읽어옵니다. (promise + callback 폴백 + 재시도)
+ */
+async function fetchRulesFromStorage(retryCount = 0) {
+  const MAX_RETRIES = 3;
+  return new Promise((resolve) => {
+    chrome.storage.local.get(STORAGE_KEY, (result) => {
+      if (chrome.runtime.lastError) {
+        console.warn('[Faker] Storage read error:', chrome.runtime.lastError);
+        if (retryCount < MAX_RETRIES) {
+          setTimeout(() => resolve(fetchRulesFromStorage(retryCount + 1)), 500);
+          return;
+        }
+        resolve(cachedRules);
+        return;
+      }
+      const rules = result[STORAGE_KEY];
+      if (Array.isArray(rules)) {
+        cachedRules = rules;
+        console.log(`[Faker] Loaded ${rules.length} rule(s) from storage`);
+        resolve(rules);
+      } else {
+        // 첫 시도에서 빈 결과면 한 번 더 재시도
+        if (retryCount === 0 && (!rules || rules.length === 0)) {
+          setTimeout(() => resolve(fetchRulesFromStorage(retryCount + 1)), 400);
+          return;
+        }
+        resolve(cachedRules);
+      }
+    });
   });
+}
+
+async function getMatchingRules() {
+  const allRules = await fetchRulesFromStorage();
+  if (!allRules || !Array.isArray(allRules) || allRules.length === 0) return [];
+
+  const currentUrl = window.location.href;
+  return allRules.filter((rule) => urlMatches(rule.urlPattern, currentUrl));
 }
 
 function applyRule(rule) {
@@ -65,6 +135,19 @@ async function applyAllRules() {
     applyRule(rule);
   }
 }
+
+// storage 변경 감지 → 로컬 캐시 즉시 갱신 + 규칙 재적용
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== 'local') return;
+  if (changes[STORAGE_KEY]) {
+    const newRules = changes[STORAGE_KEY].newValue;
+    if (Array.isArray(newRules)) {
+      cachedRules = newRules;
+      console.log('[Faker] Storage changed, re-applying rules...');
+      applyAllRules();
+    }
+  }
+});
 
 // ==================== 2. MutationObserver ====================
 
@@ -715,13 +798,19 @@ function injectStyles() {
  */
 async function initWithRetry(retryCount = 0) {
   const MAX_RETRIES = 5;
-  const RETRY_DELAY = 800; // ms
+  const RETRY_DELAY = 800;
 
-  // body가 아직 없으면 재시도
   if (!document.body && retryCount < MAX_RETRIES) {
     console.log(`[Faker] Waiting for document.body... (attempt ${retryCount + 1})`);
     setTimeout(() => initWithRetry(retryCount + 1), RETRY_DELAY);
     return;
+  }
+
+  // 먼저 캐시를 프리워밍 (applyAllRules 호출 전에 storage 읽기 보장)
+  try {
+    await fetchRulesFromStorage();
+  } catch (e) {
+    console.warn('[Faker] Cache pre-warm failed:', e);
   }
 
   try {
@@ -735,15 +824,16 @@ async function initWithRetry(retryCount = 0) {
     }
   }
 
-  // Observer 시작
   startObserver();
 
-  // 2차 보장: 1.5초 후 한 번 더 적용 (늦게 렌더링되는 요소 대비)
-  setTimeout(async () => {
-    try {
-      await applyAllRules();
-    } catch (e) { /* ignore */ }
-  }, 1500);
+  // 2차 보장: 1.5초 / 4초 후 추가 적용 (늦게 렌더링되는 요소, SPA 대비)
+  [1500, 4000].forEach((delay) => {
+    setTimeout(async () => {
+      try {
+        await applyAllRules();
+      } catch (e) { /* ignore */ }
+    }, delay);
+  });
 }
 
 // 페이지가 이미 로드된 상태면 바로 시작, 아니면 DOMContentLoaded 대기
