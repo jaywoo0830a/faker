@@ -1,0 +1,268 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #1e1e2e;
+  color: #cdd6f4;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
+/* Header */
+header {
+  text-align: center;
+  border-bottom: 1px solid #313244;
+  padding-bottom: 12px;
+}
+
+header h1 {
+  font-size: 18px;
+  color: #cba6f7;
+}
+
+.subtitle {
+  font-size: 11px;
+  color: #6c7086;
+  margin-top: 4px;
+}
+
+/* Sections */
+.section-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a6adc8;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.url-display {
+  font-size: 11px;
+  color: #6c7086;
+  padding: 6px 10px;
+  background: #181825;
+  border-radius: 6px;
+  word-break: break-all;
+  margin-bottom: 6px;
+  min-height: 20px;
+}
+
+/* Input Rows */
+.url-pattern-row {
+  display: flex;
+  gap: 6px;
+}
+
+.url-pattern-row input {
+  flex: 1;
+}
+
+.rule-input-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.rule-input-row input {
+  flex: 1;
+}
+
+input[type="text"] {
+  padding: 8px 10px;
+  background: #313244;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+  border-color: #cba6f7;
+}
+
+input[type="text"]::placeholder {
+  color: #585b70;
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: #cba6f7;
+  color: #1e1e2e;
+}
+
+.btn-primary:hover {
+  background: #b4befe;
+}
+
+.btn-primary:disabled {
+  background: #45475a;
+  color: #6c7086;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #45475a;
+  color: #cdd6f4;
+}
+
+.btn-secondary:hover {
+  background: #585b70;
+}
+
+.btn-small {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.action-row {
+  display: flex;
+  gap: 6px;
+}
+
+.action-row button {
+  flex: 1;
+}
+
+/* Rules List */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.rules-list {
+  max-height: 220px;
+  overflow-y: auto;
+  background: #181825;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  font-size: 12px;
+  color: #585b70;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #1e1e2e;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.rule-item:last-child {
+  margin-bottom: 0;
+}
+
+.rule-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rule-selector {
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  color: #89b4fa;
+  font-size: 11px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.rule-value {
+  color: #a6e3a1;
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.rule-url {
+  color: #6c7086;
+  font-size: 10px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rule-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.rule-actions button {
+  padding: 3px 6px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.rule-actions button:hover {
+  background: #313244;
+  border-color: #45475a;
+}
+
+.btn-apply {
+  color: #a6e3a1;
+}
+
+.btn-delete {
+  color: #f38ba8;
+}
+
+/* Footer */
+footer {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  border-top: 1px solid #313244;
+  padding-top: 12px;
+}
+
+footer button {
+  flex: 1;
+}
+
+/* Scrollbar */
+.rules-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.rules-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rules-list::-webkit-scrollbar-thumb {
+  background: #45475a;
+  border-radius: 2px;
+}
