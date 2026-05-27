@@ -8,58 +8,70 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>🎭 Selector Faker</h1>
-      <p class="subtitle">CSS 셀렉터 값을 지정하고 덮어쓰세요</p>
+    <header class="app-header">
+      <div class="logo">
+        <svg class="logo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 10.5a3.5 3.5 0 0 1 7 0c0 4-7 5.5-7 5.5"/>
+          <line x1="12" y1="17" x2="12" y2="18"/>
+        </svg>
+        <div>
+          <h1 class="app-title">Selector Faker</h1>
+          <p class="app-subtitle">CSS selector value override</p>
+        </div>
+      </div>
     </header>
 
-    <section class="current-url-section">
-      <label class="section-label">현재 페이지</label>
-      <div class="url-display" id="currentUrl">로딩 중...</div>
-      <div class="url-pattern-row">
-        <input type="text" id="urlPattern" placeholder="URL 패턴 (* 와일드카드 지원)" />
-        <button id="useCurrentUrlBtn" title="현재 URL 사용">📋</button>
+    <section class="card">
+      <div class="card-label">Current Page</div>
+      <div class="url-display" id="currentUrl">Loading...</div>
+      <div class="input-row">
+        <input type="text" id="urlPattern" class="input" placeholder="URL pattern (* wildcard supported)">
+        <button id="useCurrentUrlBtn" class="btn btn-icon" title="Use current URL">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
       </div>
     </section>
 
-    <!-- 셀렉터 피커 토글 -->
-    <section class="picker-toggle-section">
-      <button id="pickerToggleBtn" class="btn-picker-toggle">
-        <span class="picker-icon">🎯</span>
-        <span class="picker-label">셀렉터 피커 모드</span>
-        <span class="picker-status" id="pickerStatus">꺼짐</span>
+    <section class="card">
+      <button id="pickerToggleBtn" class="picker-toggle">
+        <span class="picker-track">
+          <span class="picker-thumb"></span>
+        </span>
+        <span class="picker-label">Selector Picker</span>
+        <span class="picker-status" id="pickerStatus">Off</span>
       </button>
-      <p class="picker-hint">활성화 후 페이지의 요소를 클릭하면 CSS/XPath 후보가 표시됩니다</p>
+      <p class="picker-hint">Click any element on the page to inspect selectors and override values</p>
     </section>
 
-    <section class="add-rule-section">
-      <label class="section-label">새 규칙 추가</label>
-      <div class="rule-input-row">
-        <input type="text" id="selectorInput" placeholder="CSS 셀렉터 또는 XPath" />
+    <section class="card">
+      <div class="card-label">New Rule</div>
+      <div class="input-row">
+        <input type="text" id="selectorInput" class="input input-mono" placeholder="CSS selector or XPath">
       </div>
-      <div class="rule-input-row">
-        <input type="text" id="valueInput" placeholder="설정할 값" />
-        <button id="addRuleBtn" class="btn-primary">추가</button>
+      <div class="input-row">
+        <input type="text" id="valueInput" class="input" placeholder="Value to set">
+        <button id="addRuleBtn" class="btn btn-primary">Add</button>
       </div>
-      <div class="action-row">
-        <button id="previewBtn" class="btn-secondary" disabled>👁 미리보기</button>
+      <div class="input-row">
+        <button id="previewBtn" class="btn btn-secondary" disabled>Preview on page</button>
       </div>
     </section>
 
-    <section class="rules-list-section">
-      <div class="section-header">
-        <label class="section-label">저장된 규칙</label>
-        <button id="applyAllBtn" class="btn-small">🔄 모두 적용</button>
+    <section class="card">
+      <div class="card-header">
+        <span class="card-label">Saved Rules</span>
+        <button id="applyAllBtn" class="btn btn-ghost btn-sm">Apply all</button>
       </div>
       <div id="rulesList" class="rules-list">
-        <div class="empty-state">아직 등록된 규칙이 없습니다.</div>
+        <div class="empty-state">No rules saved yet</div>
       </div>
     </section>
 
-    <footer>
-      <button id="exportBtn" class="btn-secondary btn-small">📤 내보내기</button>
-      <button id="importBtn" class="btn-secondary btn-small">📥 가져오기</button>
-      <input type="file" id="importFile" accept=".json" style="display:none">
+    <footer class="app-footer">
+      <button id="exportBtn" class="btn btn-ghost btn-sm">Export</button>
+      <button id="importBtn" class="btn btn-ghost btn-sm">Import</button>
+      <input type="file" id="importFile" accept=".json" hidden>
     </footer>
   </div>
 

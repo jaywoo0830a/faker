@@ -63,7 +63,7 @@ async function saveRules() {
 
 function renderRules() {
   if (allRules.length === 0) {
-    rulesListEl.innerHTML = '<div class="empty-state">아직 등록된 규칙이 없습니다.</div>';
+    rulesListEl.innerHTML = '<div class="empty-state">No rules saved yet</div>';
     return;
   }
 
@@ -71,12 +71,16 @@ function renderRules() {
     <div class="rule-item">
       <div class="rule-info">
         <div class="rule-selector">${escapeHtml(rule.selector)}</div>
-        <div class="rule-value">→ ${escapeHtml(String(rule.value))}</div>
+        <div class="rule-value">${escapeHtml(String(rule.value))}</div>
         <div class="rule-url" title="${escapeHtml(rule.urlPattern || '')}">${escapeHtml(truncateUrl(rule.urlPattern))}</div>
       </div>
       <div class="rule-actions">
-        <button class="btn-apply" data-action="apply" data-index="${index}" title="현재 탭에 적용">▶</button>
-        <button class="btn-delete" data-action="delete" data-index="${index}" title="삭제">✕</button>
+        <button class="btn-apply" data-action="apply" data-index="${index}" title="Apply to current tab">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <button class="btn-delete" data-action="delete" data-index="${index}" title="Delete">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
     </div>
   `).join('');
@@ -94,7 +98,7 @@ function escapeHtml(str) {
 }
 
 function truncateUrl(url) {
-  if (!url) return '* (전체)';
+  if (!url) return '* (all pages)';
   if (url.length > 40) return url.substring(0, 40) + '...';
   return url;
 }
@@ -113,7 +117,6 @@ addRuleBtn.addEventListener('click', async () => {
   const urlPattern = urlPatternInput.value.trim();
 
   if (!selector) {
-    alert('CSS 셀렉터를 입력해주세요.');
     return;
   }
 
@@ -157,7 +160,6 @@ previewBtn.addEventListener('click', async () => {
   const value = valueInput.value;
 
   if (!selector) {
-    alert('CSS 셀렉터를 입력해주세요.');
     return;
   }
 
@@ -271,7 +273,7 @@ importFileEl.addEventListener('change', async (e) => {
     const imported = JSON.parse(text);
 
     if (!Array.isArray(imported)) {
-      throw new Error('유효하지 않은 형식입니다. JSON 배열이어야 합니다.');
+      throw new Error('Invalid format. Expected a JSON array.');
     }
 
     // 기존 규칙에 병합 (중복 id 제외)
@@ -282,9 +284,9 @@ importFileEl.addEventListener('change', async (e) => {
     await saveRules();
     renderRules();
 
-    alert(`${newRules.length}개의 규칙을 가져왔습니다.`);
+    alert(`${newRules.length} rule(s) imported.`);
   } catch (err) {
-    alert('가져오기 실패: ' + err.message);
+    alert('Import failed: ' + err.message);
   }
 
   // 파일 입력 초기화
@@ -327,10 +329,10 @@ pickerToggleBtn.addEventListener('click', async () => {
 function updatePickerUI() {
   if (pickerEnabled) {
     pickerToggleBtn.classList.add('active');
-    pickerStatus.textContent = '켜짐';
+    pickerStatus.textContent = 'On';
   } else {
     pickerToggleBtn.classList.remove('active');
-    pickerStatus.textContent = '꺼짐';
+    pickerStatus.textContent = 'Off';
   }
 }
 
