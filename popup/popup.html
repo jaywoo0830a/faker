@@ -22,10 +22,20 @@
       </div>
     </section>
 
+    <!-- 셀렉터 피커 토글 -->
+    <section class="picker-toggle-section">
+      <button id="pickerToggleBtn" class="btn-picker-toggle">
+        <span class="picker-icon">🎯</span>
+        <span class="picker-label">셀렉터 피커 모드</span>
+        <span class="picker-status" id="pickerStatus">꺼짐</span>
+      </button>
+      <p class="picker-hint">활성화 후 페이지의 요소를 클릭하면 CSS/XPath 후보가 표시됩니다</p>
+    </section>
+
     <section class="add-rule-section">
       <label class="section-label">새 규칙 추가</label>
       <div class="rule-input-row">
-        <input type="text" id="selectorInput" placeholder="CSS 셀렉터 (예: #email, .name)" />
+        <input type="text" id="selectorInput" placeholder="CSS 셀렉터 또는 XPath" />
       </div>
       <div class="rule-input-row">
         <input type="text" id="valueInput" placeholder="설정할 값" />

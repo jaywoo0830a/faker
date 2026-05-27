@@ -147,6 +147,68 @@ button {
   flex: 1;
 }
 
+/* Picker Toggle */
+.picker-toggle-section {
+  background: #181825;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.btn-picker-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: #313244;
+  border: 2px solid #45475a;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cdd6f4;
+  transition: all 0.2s;
+}
+
+.btn-picker-toggle:hover {
+  border-color: #cba6f7;
+}
+
+.btn-picker-toggle.active {
+  background: #cba6f7;
+  border-color: #cba6f7;
+  color: #1e1e2e;
+}
+
+.picker-icon {
+  font-size: 18px;
+}
+
+.picker-label {
+  flex: 1;
+  text-align: left;
+}
+
+.picker-status {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: #45475a;
+  color: #a6adc8;
+}
+
+.btn-picker-toggle.active .picker-status {
+  background: #a6e3a1;
+  color: #1e1e2e;
+}
+
+.picker-hint {
+  font-size: 10px;
+  color: #6c7086;
+  margin-top: 6px;
+  text-align: center;
+}
+
 /* Rules List */
 .section-header {
   display: flex;

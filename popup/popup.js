@@ -18,9 +18,12 @@ const rulesListEl = document.getElementById('rulesList');
 const exportBtn = document.getElementById('exportBtn');
 const importBtn = document.getElementById('importBtn');
 const importFileEl = document.getElementById('importFile');
+const pickerToggleBtn = document.getElementById('pickerToggleBtn');
+const pickerStatus = document.getElementById('pickerStatus');
 
 let currentTabUrl = '';
 let allRules = [];
+let pickerEnabled = false;
 
 // ==================== 초기화 ====================
 
@@ -42,6 +45,9 @@ async function init() {
   // 저장된 규칙 불러오기
   await loadRules();
   renderRules();
+
+  // 피커 모드 초기 상태 확인
+  await checkPickerState();
 }
 
 async function loadRules() {
@@ -283,6 +289,67 @@ importFileEl.addEventListener('change', async (e) => {
 
   // 파일 입력 초기화
   importFileEl.value = '';
+});
+
+// ==================== 셀렉터 피커 토글 ====================
+
+pickerToggleBtn.addEventListener('click', async () => {
+  pickerEnabled = !pickerEnabled;
+  updatePickerUI();
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.id) return;
+
+  try {
+    await chrome.tabs.sendMessage(tab.id, {
+      action: 'togglePicker',
+      enabled: pickerEnabled,
+    });
+  } catch (e) {
+    // content script가 없으면 주입 후 다시 시도
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content/content.js'],
+      });
+      setTimeout(async () => {
+        try {
+          await chrome.tabs.sendMessage(tab.id, {
+            action: 'togglePicker',
+            enabled: pickerEnabled,
+          });
+        } catch (err) { /* ignore */ }
+      }, 300);
+    } catch (err) { /* restricted page */ }
+  }
+});
+
+function updatePickerUI() {
+  if (pickerEnabled) {
+    pickerToggleBtn.classList.add('active');
+    pickerStatus.textContent = '켜짐';
+  } else {
+    pickerToggleBtn.classList.remove('active');
+    pickerStatus.textContent = '꺼짐';
+  }
+}
+
+async function checkPickerState() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.id) return;
+  try {
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getPickerState' });
+    pickerEnabled = response?.active || false;
+    updatePickerUI();
+  } catch (e) { /* ignore */ }
+}
+
+// content script에서 셀렉터 사용 요청 수신
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message.action === 'useSelector' && message.selector) {
+    selectorInput.value = message.selector;
+    valueInput.focus();
+  }
 });
 
 // ==================== 시작 ====================
