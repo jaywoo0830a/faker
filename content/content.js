@@ -59,7 +59,11 @@ function applyValueToElement(element, value) {
 
 async function applyAllRules() {
   const rules = await getMatchingRules();
-  for (const rule of rules) applyRule(rule);
+  if (rules.length === 0) return;
+  console.log(`[Faker] Applying ${rules.length} rule(s) to ${window.location.href}`);
+  for (const rule of rules) {
+    applyRule(rule);
+  }
 }
 
 // ==================== 2. MutationObserver ====================
@@ -703,10 +707,52 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-// ==================== 8. 초기화 ====================
+// ==================== 8. 초기화 (안정적인 자동 적용) ====================
 
-(function init() {
-  injectStyles();
-  applyAllRules();
+/**
+ * body가 준비될 때까지 기다렸다가 규칙을 적용합니다.
+ * 실패 시 최대 5회 재시도합니다.
+ */
+async function initWithRetry(retryCount = 0) {
+  const MAX_RETRIES = 5;
+  const RETRY_DELAY = 800; // ms
+
+  // body가 아직 없으면 재시도
+  if (!document.body && retryCount < MAX_RETRIES) {
+    console.log(`[Faker] Waiting for document.body... (attempt ${retryCount + 1})`);
+    setTimeout(() => initWithRetry(retryCount + 1), RETRY_DELAY);
+    return;
+  }
+
+  try {
+    await applyAllRules();
+    console.log('[Faker] Auto-apply completed on page load');
+  } catch (e) {
+    console.warn('[Faker] Initial apply failed:', e);
+    if (retryCount < MAX_RETRIES) {
+      setTimeout(() => initWithRetry(retryCount + 1), RETRY_DELAY);
+      return;
+    }
+  }
+
+  // Observer 시작
   startObserver();
-})();
+
+  // 2차 보장: 1.5초 후 한 번 더 적용 (늦게 렌더링되는 요소 대비)
+  setTimeout(async () => {
+    try {
+      await applyAllRules();
+    } catch (e) { /* ignore */ }
+  }, 1500);
+}
+
+// 페이지가 이미 로드된 상태면 바로 시작, 아니면 DOMContentLoaded 대기
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    injectStyles();
+    initWithRetry();
+  });
+} else {
+  injectStyles();
+  initWithRetry();
+}
